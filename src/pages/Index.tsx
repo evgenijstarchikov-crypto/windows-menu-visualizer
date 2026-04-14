@@ -50,18 +50,24 @@ function parseIni(content: string): IniSection[] {
     if (line.startsWith('[') && line.endsWith(']')) {
       currentSection = { id: generateId(), name: line.slice(1, -1), params: [] };
       sections.push(currentSection);
-    } else if (line.startsWith(';') || line.startsWith('#')) {
+    } else if (line.startsWith('//') || line.startsWith(';') || line.startsWith('#')) {
       if (!currentSection) { currentSection = { id: generateId(), name: '', params: [] }; sections.push(currentSection); }
-      currentSection.params.push({ id: generateId(), key: '', value: '', comment: line.slice(1).trim() });
+      const commentText = line.startsWith('//') ? line.slice(2).trim() : line.slice(1).trim();
+      // Если следующий param — ключ, комментарий прицепим к нему; пока добавляем как pending
+      currentSection.params.push({ id: generateId(), key: '', value: '', comment: commentText });
     } else if (line.includes('=')) {
       if (!currentSection) { currentSection = { id: generateId(), name: '', params: [] }; sections.push(currentSection); }
       const eqIdx = line.indexOf('=');
       const k = line.slice(0, eqIdx).trim();
-      const valRaw = line.slice(eqIdx + 1);
-      const semiIdx = valRaw.indexOf(';');
-      const value = semiIdx >= 0 ? valRaw.slice(0, semiIdx).trim() : valRaw.trim();
-      const comment = semiIdx >= 0 ? valRaw.slice(semiIdx + 1).trim() : '';
-      currentSection.params.push({ id: generateId(), key: k, value, comment });
+      const valRaw = line.slice(eqIdx + 1).replace(/;$/, '').trim();
+      // Проверяем, не является ли предыдущий param "висячим" комментарием — тогда переносим его
+      const last = currentSection.params.at(-1);
+      if (last && !last.key && last.comment) {
+        currentSection.params.pop();
+        currentSection.params.push({ id: generateId(), key: k, value: valRaw, comment: last.comment });
+      } else {
+        currentSection.params.push({ id: generateId(), key: k, value: valRaw, comment: '' });
+      }
     }
   }
 
@@ -77,7 +83,7 @@ function serializeIni(sections: IniSection[]): string {
         lines.push(`// ${param.comment}`);
       } else if (param.key) {
         if (param.comment) lines.push(`// ${param.comment}`);
-        lines.push(`${param.key}=${param.value}`);
+        lines.push(`${param.key}=${param.value};`);
       }
     }
     lines.push('');

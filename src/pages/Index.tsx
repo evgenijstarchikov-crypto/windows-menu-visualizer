@@ -55,7 +55,7 @@ function serializeIni(sections: IniSection[]): string {
       if (!param.key && param.comment) {
         lines.push(`; ${param.comment}`);
       } else if (param.key) {
-        lines.push(`${param.key}=${param.value}${param.comment ? ` ; ${param.comment}` : ''}`);
+        lines.push(`${param.key}=${param.value}${param.comment ? ` ;${param.comment}` : ';'}`);
       }
     }
     lines.push('');
@@ -342,7 +342,7 @@ export default function Index() {
 
                 {/* Column headers */}
                 <div className="grid grid-cols-[1fr_1fr_1fr_32px] px-4 py-2 border-b border-border shrink-0">
-                  {['key', 'value', '; comment', ''].map((h, i) => (
+                  {['; comment', 'key', 'value', ''].map((h, i) => (
                     <span key={i} className="text-xs text-muted-foreground" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{h}</span>
                   ))}
                 </div>
@@ -362,10 +362,17 @@ export default function Index() {
                       className="grid grid-cols-[1fr_1fr_1fr_32px] px-4 border-b border-border/40 hover:bg-muted/20 group transition-colors"
                     >
                       <input
+                        value={param.comment}
+                        onChange={e => updateParam(currentSection.id, param.id, 'comment', e.target.value)}
+                        placeholder="комментарий"
+                        className="bg-transparent text-xs text-muted-foreground py-2 pr-3 focus:outline-none placeholder:text-muted-foreground/25 w-full"
+                        style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+                      />
+                      <input
                         value={param.key}
                         onChange={e => updateParam(currentSection.id, param.id, 'key', e.target.value)}
                         placeholder="key"
-                        className="bg-transparent text-sm text-foreground py-2 pr-3 focus:outline-none placeholder:text-muted-foreground/30 w-full"
+                        className="bg-transparent text-sm text-foreground py-2 px-3 border-l border-border/50 focus:outline-none placeholder:text-muted-foreground/30 w-full"
                         style={{ fontFamily: "'IBM Plex Mono', monospace" }}
                       />
                       <div className="flex items-center border-l border-border/50 px-3 gap-1.5 min-w-0">
@@ -389,13 +396,6 @@ export default function Index() {
                           </button>
                         )}
                       </div>
-                      <input
-                        value={param.comment}
-                        onChange={e => updateParam(currentSection.id, param.id, 'comment', e.target.value)}
-                        placeholder="комментарий"
-                        className="bg-transparent text-xs text-muted-foreground py-2 px-3 border-l border-border/50 focus:outline-none placeholder:text-muted-foreground/25 w-full"
-                        style={{ fontFamily: "'IBM Plex Mono', monospace" }}
-                      />
                       <button
                         onClick={() => removeParam(currentSection.id, param.id)}
                         className="flex items-center justify-center text-transparent group-hover:text-muted-foreground hover:!text-destructive transition-all"

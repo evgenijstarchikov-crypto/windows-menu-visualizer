@@ -74,9 +74,10 @@ function serializeIni(sections: IniSection[]): string {
     if (section.name) lines.push(`[${section.name}]`);
     for (const param of section.params) {
       if (!param.key && param.comment) {
-        lines.push(`; ${param.comment}`);
+        lines.push(`// ${param.comment}`);
       } else if (param.key) {
-        lines.push(`${param.key}=${param.value}${param.comment ? ` ;${param.comment}` : ';'}`);
+        if (param.comment) lines.push(`// ${param.comment}`);
+        lines.push(`${param.key}=${param.value}`);
       }
     }
     lines.push('');
